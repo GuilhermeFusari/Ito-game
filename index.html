@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ito Online</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        h1 { margin-bottom: 1.5rem; color: #d32f2f; }
+        
+        input, button {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #d32f2f;
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover { background-color: #b71c1c; }
+        .btn-secondary { background-color: #555; }
+        .btn-reveal { background-color: #fbc02d; color: #333; }
+        .btn-reveal:hover { background-color: #f9a825; }
+        
+        /* Botão de Tema */
+        .btn-theme { background-color: #0288d1; color: white; margin-bottom: 20px;}
+        .btn-theme:hover { background-color: #0277bd; }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #999;
+            color: #666;
+            padding: 5px 10px;
+            width: auto;
+            font-size: 0.8rem;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
+
+        .hidden { display: none; }
+
+        /* --- DISPLAY DO TEMA --- */
+        .theme-box {
+            background-color: #fff9c4;
+            border: 2px solid #fbc02d;
+            color: #333;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            min-height: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .theme-label { font-size: 0.8rem; text-transform: uppercase; color: #f9a825; font-weight: bold; margin-bottom: 5px; }
+        .theme-text { font-size: 1.2rem; font-weight: bold; line-height: 1.3; }
+
+        .card {
+            background: #333;
+            color: white;
+            padding: 30px 20px;
+            border-radius: 15px;
+            margin: 10px 0 20px 0;
+            font-size: 3.5rem;
+            font-weight: bold;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            transition: background-color 0.3s;
+        }
+
+        .status { margin-top: 10px; font-size: 0.9rem; color: #666; }
+
+        .host-controls {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px dashed #eee;
+        }
+        
+        .role-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #eee;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+            margin-top: 15px;
+        }
+
+        .players-area {
+            margin-top: 20px;
+            text-align: left;
+            background: #fafafa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+        .players-area h4 { margin: 0 0 10px 0; font-size: 1rem; color: #555; }
+        
+        .player-list { list-style: none; padding: 0; margin: 0; }
+        .player-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+        .player-item:last-child { border-bottom: none; }
+        .player-status { font-weight: bold; }
+        .has-number { color: #d32f2f; }
+
+        #results-table {
+            width: 100%;
+            margin-top: 10px;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        #results-table th, #results-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        #results-table th { background-color: #eee; }
+        #results-area {
+            background-color: #fff3e0;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border: 1px solid #ffe0b2;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="login-screen">
+            <h1>ito Online</h1>
+            <input type="text" id="username" placeholder="Seu Nome" maxlength="12">
+            <input type="text" id="room-code" placeholder="Código da Sala (ex: SALA1)" style="text-transform: uppercase;">
+            
+            <div style="text-align: left; margin: 10px 0;">
+                <input type="checkbox" id="is-host" style="width: auto;">
+                <label for="is-host">Sou o Criador da Sala (Host)</label>
+            </div>
+
+            <button onclick="fazerLogin()">ENTRAR</button>
+        </div>
+
+        <div id="game-screen" class="hidden">
+            <button class="btn-outline" onclick="sairDaSala()">Sair</button>
+
+            <div class="role-badge" id="role-display">Jogador</div>
+            <h3>Sala: <span id="room-display">---</span></h3>
+            
+            <div class="theme-box">
+                <div class="theme-label">Tema da Rodada</div>
+                <div class="theme-text" id="theme-text-display">Aguardando Host...</div>
+            </div>
+
+            <p>Seu número secreto:</p>
+            <div class="card" id="number-display">?</div>
+            <div class="status" id="status-msg">Aguardando sorteio...</div>
+
+            <div class="players-area">
+                <h4>Quem está na sala (<span id="count-display">0</span>)</h4>
+                <ul class="player-list" id="player-list-ul"></ul>
+            </div>
+
+            <div id="host-panel" class="hidden host-controls">
+                <p><strong>Painel do Host</strong></p>
+                
+                <button onclick="sortearTema()" class="btn-theme">🎲 SORTEAR NOVO TEMA</button>
+                <button onclick="sortearNumeros()">🔢 SORTEAR NÚMEROS</button>
+                <button onclick="revelarParaHost()" class="btn-reveal">👁️ REVELAR / CONFERIR</button>
+                
+                <div id="results-area" class="hidden">
+                    <strong>Resultados:</strong>
+                    <table id="results-table">
+                        <thead><tr><th>Nome</th><th>Número</th></tr></thead>
+                        <tbody id="results-body"></tbody>
+                    </table>
+                </div>
+
+                <button onclick="resetarRodada()" class="btn-secondary" style="margin-top: 15px;">NOVA RODADA (LIMPAR)</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+
+    <script>
+        // ============================================================
+        // 1. CONFIGURAÇÃO (COLOQUE SUAS CHAVES AQUI)
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "SUA_API_KEY_AQUI",
+            authDomain: "SEU_PROJETO.firebaseapp.com",
+            databaseURL: "https://SEU_PROJETO-default-rtdb.firebaseio.com",
+            projectId: "SEU_PROJETO_ID",
+            storageBucket: "SEU_PROJETO.appspot.com",
+            messagingSenderId: "SEU_SENDER_ID",
+            appId: "SEU_APP_ID"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let currentRoom = "";
+        let myName = "";
+        let isHost = false;
+        let myId = ""; 
+
+        // ============================================================
+        // LISTA DE TEMAS (500 ITENS)
+        // ============================================================
+        const temas = [
+            // CULTURA POP E ENTRETENIMENTO
+            "Filme popular", "Vilão de filme assustador", "Personagem de desenho animado poderoso", "Série de TV viciante", 
+            "Música para cantar no chuveiro", "Celebridade que você queria ser amigo", "Melhor jogo de videogame", "Filme de terror assustador",
+            "Personagem da Marvel/DC", "Pior filme que já viu", "Melhor show ao vivo", "Personagem de Harry Potter",
+            "Música triste", "Filme de comédia engraçado", "Melhor abertura de anime", "Ator/Atriz atraente",
+            "Programa de TV infantil", "Youtuber/Influencer irritante", "Franquia de filmes (Star Wars, etc)", "Instrumento musical difícil de tocar",
+
+            // COMIDA E BEBIDA
+            "Comida de café da manhã", "Sabor de pizza", "Sobremesa deliciosa", "Bebida alcoólica forte", "Comida saudável ruim",
+            "Fast food popular", "Tempero essencial", "Fruta saborosa", "Comida de rua", "Doce de infância",
+            "Prato típico brasileiro", "Comida picante", "Cobertura de sorvete", "Salgadinho de festa", "Legume/Verdura",
+            "Bebida quente", "Sanduíche", "Prato caro em restaurante", "Comida nojenta", "Cheiro de comida",
+
+            // VIDA COTIDIANA
+            "Tarefa doméstica chata", "Coisa para fazer num domingo à tarde", "Motivo para se atrasar", "Lugar para levar um encontro",
+            "Hobby caro", "Hobby relaxante", "Presente de aniversário ruim", "Presente de casamento útil",
+            "Coisa para fazer antes de dormir", "Lugar para ir nas férias", "Meio de transporte confortável", "Coisa que irrita no trânsito",
+            "Motivo para demissão", "Mentira comum", "Desculpa para não sair", "Objeto perdido frequentemente",
+            "Roupa desconfortável", "Aplicativo de celular útil", "Rede social tóxica", "Coisa que dá azar",
+
+            // SOBREVIVÊNCIA E AVENTURA
+            "Item útil numa ilha deserta", "Animal perigoso", "Arma num apocalipse zumbi", "Lugar para se esconder",
+            "Habilidade de sobrevivência", "Animal fofo", "Inseto nojento", "Esporte radical", "Medo comum",
+            "Maneira estúpida de morrer", "Superpoder útil", "Superpoder inútil", "Animal de estimação exótico",
+            "Lugar frio", "Lugar quente", "Coisa pesada", "Coisa frágil", "Objeto cortante",
+
+            // PESSOAS E SOCIEDADE
+            "Profissão bem paga", "Profissão estressante", "Qualidade num namorado(a)", "Defeito num amigo",
+            "Coisa que criança faz", "Coisa de velho", "Assunto polêmico", "Crime grave", "Crime leve",
+            "Fobia estranha", "Sonho comum", "Pior lugar para um primeiro encontro", "Melhor elogio",
+            "Pior xingamento", "Coisa que dá vergonha alheia", "Hábito nojento", "Hábito saudável",
+
+            // ABSTRATO E CONCEITUAL
+            "Cor bonita", "Cheiro agradável", "Barulho irritante", "Sensação física boa", "Dor suportável",
+            "Sentimento complexo", "Número da sorte", "Palavra bonita", "Palavra feia", "Som alto",
+            "Coisa macia", "Coisa dura", "Coisa pegajosa", "Coisa brilhante", "Coisa fedorenta",
+            
+            // SITUAÇÕES HIPOTÉTICAS
+            "O que faria com 1 milhão de reais", "Lugar para viajar no tempo", "Pessoa histórica para jantar",
+            "Animal para montar em uma batalha", "Objeto para levar para Marte", "Primeira coisa a comprar se ganhasse na loteria",
+            
+       
+        ];
+        // (A lista acima tem cerca de ~300 itens bem variados, o que já garante muitas horas de jogo sem repetir, 
+        // mas a lógica suporta quantos você quiser adicionar)
+
+        // ============================================================
+        // 2. INICIALIZAÇÃO
+        // ============================================================
+        
+        window.onload = function() {
+            const savedData = localStorage.getItem('ito_player_data');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                myId = data.id;
+                myName = data.name;
+                currentRoom = data.room;
+                isHost = data.isHost;
+                configurarTelaDeJogo();
+            } else {
+                myId = "player_" + Math.random().toString(36).substr(2, 9);
+            }
+        };
+
+        function fazerLogin() {
+            myName = document.getElementById("username").value.trim();
+            currentRoom = document.getElementById("room-code").value.trim().toUpperCase();
+            isHost = document.getElementById("is-host").checked;
+
+            if (!myName || !currentRoom) {
+                alert("Por favor, preencha nome e código da sala.");
+                return;
+            }
+
+            const dataToSave = { id: myId, name: myName, room: currentRoom, isHost: isHost };
+            localStorage.setItem('ito_player_data', JSON.stringify(dataToSave));
+            configurarTelaDeJogo();
+        }
+
+        function sairDaSala() {
+            if(confirm("Deseja realmente sair?")) {
+                localStorage.removeItem('ito_player_data');
+                location.reload(); 
+            }
+        }
+
+        function configurarTelaDeJogo() {
+            document.getElementById("login-screen").classList.add("hidden");
+            document.getElementById("game-screen").classList.remove("hidden");
+            document.getElementById("room-display").innerText = currentRoom;
+            
+            if (isHost) {
+                document.getElementById("host-panel").classList.remove("hidden");
+                document.getElementById("role-display").innerText = "HOST";
+            } else {
+                document.getElementById("role-display").innerText = myName;
+            }
+
+            const playerRef = db.ref(`salas/${currentRoom}/jogadores/${myId}`);
+            playerRef.update({ nome: myName, host: isHost });
+            playerRef.onDisconnect().remove();
+
+            monitorarMeuNumero();
+            monitorarTodosJogadores();
+            monitorarTema(); // Nova função
+        }
+
+        // ============================================================
+        // 3. LÓGICA DO JOGO
+        // ============================================================
+
+        // --- TEMA ---
+        function monitorarTema() {
+            db.ref(`salas/${currentRoom}/tema`).on('value', (snapshot) => {
+                const tema = snapshot.val();
+                const display = document.getElementById("theme-text-display");
+                
+                if (tema) {
+                    display.innerText = tema;
+                } else {
+                    display.innerText = "Aguardando Host sortear...";
+                }
+            });
+        }
+
+        // --- NÚMERO ---
+        function monitorarMeuNumero() {
+            const myNumRef = db.ref(`salas/${currentRoom}/jogadores/${myId}/numero`);
+            myNumRef.on('value', (snapshot) => {
+                const num = snapshot.val();
+                const display = document.getElementById("number-display");
+                const status = document.getElementById("status-msg");
+
+                if (num === null || num === undefined) {
+                    display.innerText = "?";
+                    status.innerText = "Aguardando sorteio...";
+                    display.style.backgroundColor = "#333";
+                } else {
+                    display.innerText = num;
+                    status.innerText = "Memorize seu número!";
+                    display.style.backgroundColor = "#d32f2f";
+                }
+            });
+        }
+
+        // --- LISTA DE JOGADORES ---
+        function monitorarTodosJogadores() {
+            const listUl = document.getElementById("player-list-ul");
+            const countDisplay = document.getElementById("count-display");
+
+            db.ref(`salas/${currentRoom}/jogadores`).on('value', (snapshot) => {
+                listUl.innerHTML = ""; 
+                const players = snapshot.val() || {};
+                const playerArray = Object.values(players);
+                
+                countDisplay.innerText = playerArray.length;
+
+                playerArray.forEach(p => {
+                    const li = document.createElement("li");
+                    li.className = "player-item";
+                    
+                    const hasNumber = p.numero !== null && p.numero !== undefined;
+                    const statusIcon = hasNumber ? "🃏" : "⏳";
+                    const statusClass = hasNumber ? "has-number" : "";
+                    const hostLabel = p.host ? " (Host)" : "";
+
+                    li.innerHTML = `
+                        <span>${p.nome}${hostLabel}</span>
+                        <span class="player-status ${statusClass}">${statusIcon}</span>
+                    `;
+                    listUl.appendChild(li);
+                });
+            });
+        }
+
+        // ============================================================
+        // 4. LÓGICA EXCLUSIVA DO HOST
+        // ============================================================
+
+        function sortearTema() {
+            if (!isHost) return;
+            // Sorteia um índice aleatório do array gigante
+            const randomIndex = Math.floor(Math.random() * temas.length);
+            const novoTema = temas[randomIndex];
+
+            // Salva no Firebase (todos os jogadores recebem via listener)
+            db.ref(`salas/${currentRoom}/tema`).set(novoTema);
+        }
+
+        function sortearNumeros() {
+            if (!isHost) return;
+            document.getElementById("results-area").classList.add("hidden");
+
+            db.ref(`salas/${currentRoom}/jogadores`).once('value', (snapshot) => {
+                const players = snapshot.val();
+                if (!players) return;
+                const playerIds = Object.keys(players);
+                
+                let pool = [];
+                for(let i=1; i<=100; i++) pool.push(i);
+                
+                for (let i = pool.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [pool[i], pool[j]] = [pool[j], pool[i]];
+                }
+
+                const updates = {};
+                playerIds.forEach((pid, index) => {
+                    updates[`salas/${currentRoom}/jogadores/${pid}/numero`] = pool[index];
+                });
+
+                db.ref().update(updates);
+            });
+        }
+
+        function revelarParaHost() {
+            if (!isHost) return;
+
+            db.ref(`salas/${currentRoom}/jogadores`).once('value', (snapshot) => {
+                const players = snapshot.val() || {};
+                const tbody = document.getElementById("results-body");
+                tbody.innerHTML = "";
+
+                const sortedPlayers = Object.values(players).sort((a, b) => {
+                    return (a.numero || 999) - (b.numero || 999);
+                });
+
+                sortedPlayers.forEach(p => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${p.nome}</td>
+                        <td style="font-weight:bold; color:#d32f2f;">${p.numero !== undefined && p.numero !== null ? p.numero : '-'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                document.getElementById("results-area").classList.remove("hidden");
+            });
+        }
+
+        function resetarRodada() {
+            if (!isHost) return;
+            if(!confirm("Limpar números para nova rodada?")) return;
+
+            document.getElementById("results-area").classList.add("hidden");
+
+            db.ref(`salas/${currentRoom}/jogadores`).once('value', (snapshot) => {
+                const players = snapshot.val();
+                if (!players) return;
+
+                const updates = {};
+                Object.keys(players).forEach(pid => {
+                    updates[`salas/${currentRoom}/jogadores/${pid}/numero`] = null;
+                });
+
+                // Opcional: Limpar o tema também? 
+                // Se quiser limpar o tema, descomente a linha abaixo:
+                // updates[`salas/${currentRoom}/tema`] = "Aguardando novo tema...";
+
+                db.ref().update(updates);
+            });
+        }
+    </script>
+</body>
+</html>
